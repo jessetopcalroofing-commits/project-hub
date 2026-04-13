@@ -1,0 +1,9 @@
+name = "project-hub-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "project-hub-db"
+database_id = "b0e5bbfa-d088-4835-a356-800dfab185da"
+
