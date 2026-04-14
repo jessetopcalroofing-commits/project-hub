@@ -22,4 +22,3 @@ jobs:
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           projectName: project-hub
           directory: frontend
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
