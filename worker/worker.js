@@ -71,6 +71,27 @@ export default {
         return json({ seeded: projects.length });
       }
 
+      if (path === "/deploy" && method === "POST") {
+        const token = env.GITHUB_TOKEN;
+        if (!token) return json({ error: "GITHUB_TOKEN secret not configured on worker" }, 500);
+        const resp = await fetch(
+          "https://api.github.com/repos/jessetopcalroofing-commits/project-hub/actions/workflows/deploy.yml/dispatches",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/vnd.github+json",
+              "User-Agent": "project-hub-worker",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ref: "main" }),
+          }
+        );
+        if (resp.status === 204) return json({ triggered: true });
+        const err = await resp.text();
+        return json({ error: err }, resp.status);
+      }
+
       return json({ error: "Not found" }, 404);
     } catch (e) {
       return json({ error: e.message }, 500);

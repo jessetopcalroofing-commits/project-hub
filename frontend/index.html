@@ -193,6 +193,9 @@
     </div>
     <div class="sidebar-bottom">
       <button class="btn-add" onclick="openAddModal()">+ Add Project</button>
+      <button class="theme-toggle" id="deploy-btn" onclick="triggerDeploy()" style="color:var(--accent)">
+        <span id="deploy-label">▶ Deploy</span>
+      </button>
       <button class="theme-toggle" onclick="toggleTheme()">
         <span id="theme-label">Light mode</span>
         <div class="toggle-track" id="toggle-track"><div class="toggle-thumb"></div></div>
@@ -364,6 +367,18 @@ async function deleteProject(id){
   catch(e){toast('Error deleting');}
 }
 function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+async function triggerDeploy(){
+  const btn=document.getElementById('deploy-btn');
+  const lbl=document.getElementById('deploy-label');
+  if(btn.disabled)return;
+  btn.disabled=true;lbl.textContent='Deploying...';
+  try{
+    const r=await fetch(`${API}/deploy`,{method:'POST'});
+    const d=await r.json();
+    toast(d.triggered?'Deploy triggered! Building...':'Error: '+(d.error||'failed'));
+  }catch(e){toast('Deploy request failed');}
+  setTimeout(()=>{btn.disabled=false;lbl.textContent='▶ Deploy';},4000);
+}
 
 initTheme();
 load();
