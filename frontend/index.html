@@ -168,18 +168,7 @@
         <span style="font-size:14px">&#8862;</span> All Projects
         <span class="nav-count" id="nav-count-all">0</span>
       </div>
-      <div class="nav-item" onclick="setFilter('TopCal Roofing', this)">
-        <span class="nav-dot" style="background:#1D9E75"></span> TopCal Roofing
-        <span class="nav-count" id="nav-count-topcal">0</span>
-      </div>
-      <div class="nav-item" onclick="setFilter('Side Projects', this)">
-        <span class="nav-dot" style="background:#7F77DD"></span> Side Projects
-        <span class="nav-count" id="nav-count-side">0</span>
-      </div>
-      <div class="nav-item" onclick="setFilter('Political / Community', this)">
-        <span class="nav-dot" style="background:#D85A30"></span> Political / Community
-        <span class="nav-count" id="nav-count-political">0</span>
-      </div>
+      <div id="group-nav"></div>
       <div class="nav-label" style="margin-top:12px">Status</div>
       <div class="nav-item" onclick="setStatusFilter('active', this)">
         <span style="width:7px;height:7px;border-radius:50%;background:#30c090;flex-shrink:0"></span> Active
@@ -239,7 +228,10 @@
 
 <script>
 const API="https://project-hub-api.jesse-topcalroofing.workers.dev";
-const GC={"TopCal Roofing":"#1D9E75","Side Projects":"#7F77DD","Political / Community":"#D85A30"};
+const GC_KNOWN={"TopCal Roofing":"#1D9E75","Side Projects":"#7F77DD","Political / Community":"#D85A30"};
+const GC_PALETTE=["#1D9E75","#7F77DD","#D85A30","#3B82F6","#EC4899","#F59E0B","#10B981","#8B5CF6","#EF4444","#06B6D4"];
+const GC_CACHE={};
+function groupColor(g){if(GC_CACHE[g])return GC_CACHE[g];if(GC_KNOWN[g]){GC_CACHE[g]=GC_KNOWN[g];return GC_CACHE[g];}const used=Object.values(GC_CACHE);const avail=GC_PALETTE.filter(c=>!used.includes(c));GC_CACHE[g]=avail.length?avail[0]:GC_PALETTE[Object.keys(GC_CACHE).length%GC_PALETTE.length];return GC_CACHE[g];}
 const HT={"Cloudflare Pages":"cf","Cloudflare":"cf","Cloudflare (static)":"cf","Vercel":"vercel","Netlify":"netlify","Local":"local","Google Forms":"gdocs","Google Sheets":"gdocs"};
 let projects=[],activeFilter="All",activeStatus=null,view="grid",selectedId=null,editingId=null,collapsed={};
 
@@ -263,9 +255,16 @@ async function load(){
 }
 function updateCounts(){
   document.getElementById('nav-count-all').textContent=projects.length;
-  document.getElementById('nav-count-topcal').textContent=projects.filter(p=>p.group_name==='TopCal Roofing').length;
-  document.getElementById('nav-count-side').textContent=projects.filter(p=>p.group_name==='Side Projects').length;
-  document.getElementById('nav-count-political').textContent=projects.filter(p=>p.group_name==='Political / Community').length;
+  renderGroupNav();
+}
+function renderGroupNav(){
+  const groups={};projects.forEach(p=>{groups[p.group_name]=(groups[p.group_name]||0)+1;});
+  const nav=document.getElementById('group-nav');
+  nav.innerHTML=Object.entries(groups).map(([g,ct])=>{
+    const color=groupColor(g);
+    const isActive=activeFilter===g?'active':'';
+    return `<div class="nav-item ${isActive}" onclick="setFilter('${g.replace(/'/g,"\\'")}', this)"><span class="nav-dot" style="background:${color}"></span> ${g}<span class="nav-count">${ct}</span></div>`;
+  }).join('');
 }
 function getFiltered(){
   const q=document.getElementById('search').value.toLowerCase().trim();
@@ -298,11 +297,11 @@ function renderContent(){
   }
 }
 function groupHTML(g,ps){
-  const color=GC[g]||'#888',col=collapsed[g];
+  const color=groupColor(g),col=collapsed[g];
   return `<div class="group-section"><div class="group-header" onclick="toggleGroup('${g}')"><span class="group-dot-lg" style="background:${color}"></span><span class="group-title">${g}</span><span class="group-ct">${ps.length}</span><span class="chevron ${col?'up':''}">&#9662;</span></div>${col?'':`<div class="cards-grid">${ps.map(p=>cardHTML(p)).join('')}</div>`}</div>`;
 }
 function cardHTML(p){
-  const ht=HT[p.host]||'',deps=p.deps?p.deps.split(',').map(d=>d.trim()).filter(Boolean):[],short=(p.url||'').replace(/^https?:\/\//,'').replace(/^file:\/\/\//,''),color=GC[p.group_name]||'#888';
+  const ht=HT[p.host]||'',deps=p.deps?p.deps.split(',').map(d=>d.trim()).filter(Boolean):[],short=(p.url||'').replace(/^https?:\/\//,'').replace(/^file:\/\/\//,''),color=groupColor(p.group_name);
   const liveLink=p.live_url?`<a class="card-live" href="${p.live_url}" target="_blank" onclick="event.stopPropagation()">&#9654; Live</a>`:'';
   return `<div class="card ${selectedId===p.id?'selected':''}" onclick="openPanel(${p.id})"><div class="card-head"><div class="card-emoji" style="background:${color}20">${p.icon||'[?]'}</div><div style="min-width:0"><div class="card-name">${p.name}</div><div class="card-desc">${p.description||''}</div></div></div><div class="card-tags">${p.host?`<span class="tag ${ht}">${p.host}</span>`:''} ${p.cf_token?'<span class="tag cf">CF token</span>':''} ${p.status&&p.status!=='active'?`<span class="tag ${p.status}-status">${p.status}</span>`:''} ${deps.slice(0,2).map(d=>`<span class="tag">${d}</span>`).join('')}</div><div class="card-url">${short}</div>${liveLink}</div>`;
 }
@@ -311,7 +310,7 @@ function toggleGroup(g){collapsed[g]=!collapsed[g];renderContent();}
 function openPanel(id){
   const p=projects.find(x=>x.id===id);if(!p)return;
   selectedId=id;renderContent();
-  const color=GC[p.group_name]||'#888',isHttp=(p.url||'').startsWith('http'),deps=p.deps?p.deps.split(',').map(d=>d.trim()).filter(Boolean):[];
+  const color=groupColor(p.group_name),isHttp=(p.url||'').startsWith('http'),deps=p.deps?p.deps.split(',').map(d=>d.trim()).filter(Boolean):[];
   document.getElementById('panel-header').innerHTML=`<div class="panel-header-icon" style="background:${color}20">${p.icon||'[?]'}</div><div><div class="panel-title">${p.name}</div><div class="panel-subtitle">${p.group_name}</div></div><button class="panel-close" onclick="closePanel()">&#10005;</button>`;
   document.getElementById('panel-body').innerHTML=`
     <div class="section"><div class="section-title">Description</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${p.description||'No description.'}</div></div>
@@ -336,7 +335,7 @@ function formHTML(p){
   const v=p||{};
   return `<div class="form-row"><label class="form-label">Project Name *</label><input class="form-input" id="f-name" value="${v.name||''}" placeholder="My Project"/></div>
     <div class="form-row"><label class="form-label">Description</label><input class="form-input" id="f-desc" value="${v.description||''}" placeholder="What does this do?"/></div>
-    <div class="form-row-2"><div class="form-row" style="margin-bottom:0"><label class="form-label">Group</label><select class="form-input" id="f-group">${['TopCal Roofing','Side Projects','Political / Community'].map(g=>`<option ${v.group_name===g?'selected':''}>${g}</option>`).join('')}</select></div>
+    <div class="form-row-2"><div class="form-row" style="margin-bottom:0"><label class="form-label">Group</label><select class="form-input" id="f-group" onchange="if(this.value==='__other__'){this.style.display='none';document.getElementById('f-group-other').style.display='block';document.getElementById('f-group-other').focus();}">${[...new Set(projects.map(p=>p.group_name))].filter(Boolean).map(g=>`<option ${v.group_name===g?'selected':''}>${g}</option>`).join('')}<option value="__other__">+ New group...</option></select><input class="form-input" id="f-group-other" style="display:none;margin-top:6px" placeholder="Enter new group name"/></div>
     <div class="form-row" style="margin-bottom:0"><label class="form-label">Icon</label><input class="form-input" id="f-icon" value="${v.icon||''}" placeholder="[tag]"/></div></div>
     <div class="form-row" style="margin-top:14px"><label class="form-label">Project URL</label><input class="form-input" id="f-url" value="${v.url||''}" placeholder="https://..."/></div>
     <div class="form-row"><label class="form-label">Live Page URL</label><input class="form-input" id="f-live" value="${v.live_url||''}" placeholder="https://myapp.pages.dev"/></div>
@@ -347,7 +346,7 @@ function formHTML(p){
     <div class="form-row"><label class="form-label">Dependencies</label><input class="form-input" id="f-deps" value="${v.deps||''}" placeholder="React, Vite, Wrangler"/></div>
     <div class="form-row"><label class="form-label">Resume Notes</label><textarea class="form-input" id="f-notes" rows="3" placeholder="What do I need to know to continue?">${v.notes||''}</textarea></div>`;
 }
-function getFormData(){return{name:document.getElementById('f-name').value.trim(),description:document.getElementById('f-desc').value.trim(),group_name:document.getElementById('f-group').value,icon:document.getElementById('f-icon').value.trim()||'[?]',url:document.getElementById('f-url').value.trim(),live_url:document.getElementById('f-live').value.trim()||null,host:document.getElementById('f-host').value.trim(),status:document.getElementById('f-status').value,cf_user:document.getElementById('f-cfuser').value.trim()||null,cf_token:document.getElementById('f-cftoken').value.trim()||null,deps:document.getElementById('f-deps').value.trim()||null,notes:document.getElementById('f-notes').value.trim()||null};}
+function getFormData(){const gsel=document.getElementById('f-group').value;const gother=document.getElementById('f-group-other').value.trim();const gname=gsel==='__other__'&&gother?gother:gsel;return{name:document.getElementById('f-name').value.trim(),description:document.getElementById('f-desc').value.trim(),group_name:gname,icon:document.getElementById('f-icon').value.trim()||'[?]',url:document.getElementById('f-url').value.trim(),live_url:document.getElementById('f-live').value.trim()||null,host:document.getElementById('f-host').value.trim(),status:document.getElementById('f-status').value,cf_user:document.getElementById('f-cfuser').value.trim()||null,cf_token:document.getElementById('f-cftoken').value.trim()||null,deps:document.getElementById('f-deps').value.trim()||null,notes:document.getElementById('f-notes').value.trim()||null};}
 
 function openAddModal(){editingId=null;document.getElementById('modal-title').textContent='Add Project';document.getElementById('modal-body').innerHTML=formHTML(null);document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveProject()">Save Project</button>`;document.getElementById('modal-overlay').classList.add('open');}
 function openEditModal(id){const p=projects.find(x=>x.id===id);if(!p)return;editingId=id;document.getElementById('modal-title').textContent='Edit Project';document.getElementById('modal-body').innerHTML=formHTML(p);document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveProject()">Save Changes</button>`;document.getElementById('modal-overlay').classList.add('open');}
