@@ -31,11 +31,11 @@ export default {
 
       if (path === "/projects" && method === "POST") {
         const body = await request.json();
-        const { name, description, group_name, icon, host, url: purl, cf_token, cf_user, deps, notes, status } = body;
+        const { name, description, group_name, icon, host, url: purl, cf_token, cf_user, deps, notes, status, links } = body;
         const result = await env.DB.prepare(
-          `INSERT INTO projects (name, description, group_name, icon, host, url, cf_token, cf_user, deps, notes, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        ).bind(name, description, group_name, icon, host, purl, cf_token, cf_user, deps, notes, status || "active").run();
+          `INSERT INTO projects (name, description, group_name, icon, host, url, cf_token, cf_user, deps, notes, status, links)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(name, description, group_name, icon, host, purl, cf_token, cf_user, deps, notes, status || "active", links || null).run();
         return json({ id: result.meta.last_row_id, ...body }, 201);
       }
 
@@ -45,11 +45,11 @@ export default {
 
         if (method === "PUT") {
           const body = await request.json();
-          const { name, description, group_name, icon, host, url: purl, cf_token, cf_user, deps, notes, status } = body;
+          const { name, description, group_name, icon, host, url: purl, cf_token, cf_user, deps, notes, status, links } = body;
           await env.DB.prepare(
-            `UPDATE projects SET name=?, description=?, group_name=?, icon=?, host=?, url=?, cf_token=?, cf_user=?, deps=?, notes=?, status=?, updated_at=CURRENT_TIMESTAMP
+            `UPDATE projects SET name=?, description=?, group_name=?, icon=?, host=?, url=?, cf_token=?, cf_user=?, deps=?, notes=?, status=?, links=?, updated_at=CURRENT_TIMESTAMP
              WHERE id=?`
-          ).bind(name, description, group_name, icon, host, purl, cf_token, cf_user, deps, notes, status, id).run();
+          ).bind(name, description, group_name, icon, host, purl, cf_token, cf_user, deps, notes, status, links || null, id).run();
           return json({ id: Number(id), ...body });
         }
 
@@ -62,11 +62,11 @@ export default {
       if (path === "/seed" && method === "POST") {
         const projects = await request.json();
         const stmt = env.DB.prepare(
-          `INSERT INTO projects (name, description, group_name, icon, host, url, cf_token, cf_user, deps, notes, status)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO projects (name, description, group_name, icon, host, url, cf_token, cf_user, deps, notes, status, links)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         );
         for (const p of projects) {
-          await stmt.bind(p.name, p.description, p.group_name, p.icon, p.host, p.url, p.cf_token || null, p.cf_user || null, p.deps || null, p.notes || null, p.status || "active").run();
+          await stmt.bind(p.name, p.description, p.group_name, p.icon, p.host, p.url, p.cf_token || null, p.cf_user || null, p.deps || null, p.notes || null, p.status || "active", p.links || null).run();
         }
         return json({ seeded: projects.length });
       }
