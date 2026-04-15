@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Hub</title>
+<!-- build: 1776122614 -->
+<style>
+  :root {
+    --bg: #0e0e10; --bg2: #17171a; --bg3: #1e1e22;
+    --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+    --text: #f0f0f0; --text2: #888; --text3: #555;
+    --accent: #6c6cff; --accent2: #4444cc;
+    --radius: 10px; --radius-sm: 6px;
+  }
+  [data-theme="light"] {
+    --bg: #f4f4f6; --bg2: #ffffff; --bg3: #f0f0f3;
+    --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.16);
+    --text: #111111; --text2: #555555; --text3: #aaaaaa;
+    --accent: #4444ee; --accent2: #2222bb;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.2s, color 0.2s; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 20px 16px 14px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo h1 { font-size: 15px; font-weight: 600; color: var(--text); }
+  .sidebar-logo p { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .sidebar-nav { padding: 10px 8px; flex: 1; overflow-y: auto; }
+  .nav-label { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 8px 4px; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; color: var(--text2); transition: all 0.12s; margin-bottom: 1px; }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--bg3); color: var(--text); }
+  .nav-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .nav-count { margin-left: auto; font-size: 11px; color: var(--text3); background: var(--bg); padding: 1px 6px; border-radius: 10px; }
+  .sidebar-bottom { padding: 12px 8px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+  .btn-add { display: flex; align-items: center; gap: 6px; width: 100%; padding: 8px 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+  .btn-add:hover { background: var(--accent2); }
+  .theme-toggle { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; color: var(--text2); border: 1px solid var(--border); background: none; width: 100%; transition: all 0.12s; }
+  .theme-toggle:hover { background: var(--bg3); color: var(--text); }
+  .toggle-track { width: 28px; height: 16px; background: var(--border2); border-radius: 8px; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-track.on { background: var(--accent); }
+  .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+  .toggle-track.on .toggle-thumb { transform: translateX(12px); }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .topbar h2 { font-size: 16px; font-weight: 500; flex-shrink: 0; }
+  .search-wrap { flex: 1; position: relative; max-width: 340px; }
+  .search-wrap input { width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 7px 12px 7px 32px; font-size: 13px; color: var(--text); outline: none; transition: border 0.15s; }
+  .search-wrap input:focus { border-color: var(--border2); }
+  .search-wrap input::placeholder { color: var(--text3); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; }
+  .view-toggle { display: flex; gap: 4px; margin-left: auto; }
+  .view-btn { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; color: var(--text3); cursor: pointer; font-size: 12px; transition: all 0.12s; }
+  .view-btn.active, .view-btn:hover { background: var(--bg3); color: var(--text); border-color: var(--border2); }
+  .content { flex: 1; overflow-y: auto; padding: 20px; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .stat-num { font-size: 24px; font-weight: 600; color: var(--text); }
+  .stat-label { font-size: 12px; color: var(--text2); margin-top: 3px; }
+  .group-section { margin-bottom: 28px; }
+  .group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer; user-select: none; }
+  .group-dot-lg { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .group-title { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.06em; text-transform: uppercase; }
+  .group-ct { font-size: 11px; color: var(--text3); background: var(--bg2); border: 1px solid var(--border); padding: 1px 7px; border-radius: 10px; }
+  .chevron { color: var(--text3); font-size: 11px; margin-left: auto; transition: transform 0.18s; }
+  .chevron.up { transform: rotate(-90deg); }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .card:hover { border-color: var(--border2); background: var(--bg3); }
+  .card.selected { border-color: var(--accent); }
+  .card-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .card-emoji { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .card-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+  .card-desc { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; border: 1px solid var(--border); color: var(--text3); }
+  .tag.cf { background: rgba(255,175,50,0.1); color: #c07800; border-color: rgba(255,175,50,0.25); }
+  .tag.vercel { background: var(--bg3); color: var(--text2); }
+  .tag.netlify { background: rgba(50,200,150,0.1); color: #0a7a50; border-color: rgba(50,200,150,0.25); }
+  .tag.local { background: rgba(150,100,255,0.1); color: #6040bb; border-color: rgba(150,100,255,0.25); }
+  .tag.gdocs { background: rgba(66,133,244,0.1); color: #1050b0; border-color: rgba(66,133,244,0.25); }
+  .tag.active-status { background: rgba(29,158,117,0.1); color: #0a7a50; border-color: rgba(29,158,117,0.25); }
+  .tag.paused-status { background: rgba(200,150,50,0.1); color: #906000; border-color: rgba(200,150,50,0.25); }
+  .tag.archived-status { background: var(--bg3); color: var(--text3); }
+  [data-theme="dark"] .tag.cf { color: #f0a030; }
+  [data-theme="dark"] .tag.netlify { color: #30c090; }
+  [data-theme="dark"] .tag.local { color: #a080ff; }
+  [data-theme="dark"] .tag.gdocs { color: #6090f0; }
+  [data-theme="dark"] .tag.active-status { color: #30c090; }
+  [data-theme="dark"] .tag.paused-status { color: #d4a040; }
+  .card-url { font-size: 10px; color: var(--text3); margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-live { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--accent); margin-top: 5px; font-weight: 500; }
+  .card-live:hover { text-decoration: underline; }
+  .list-view .cards-grid { display: flex; flex-direction: column; gap: 6px; }
+  .list-view .card { padding: 10px 14px; display: flex; align-items: center; gap: 12px; }
+  .list-view .card-head { margin-bottom: 0; flex: 1; min-width: 0; }
+  .list-view .card-emoji { width: 28px; height: 28px; font-size: 14px; }
+  .list-view .card-tags { margin-top: 0; }
+  .list-view .card-url { display: none; }
+  .list-view .card-live { margin-top: 0; }
+  .panel-overlay { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,0.4); display: none; }
+  .panel-overlay.open { display: block; }
+  .panel { position: fixed; right: 0; top: 0; height: 100vh; width: 400px; background: var(--bg2); border-left: 1px solid var(--border2); z-index: 51; transform: translateX(100%); transition: transform 0.22s ease; overflow-y: auto; display: flex; flex-direction: column; }
+  .panel.open { transform: translateX(0); }
+  .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .panel-header-icon { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .panel-title { font-size: 16px; font-weight: 500; }
+  .panel-subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .panel-close { margin-left: auto; background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; padding: 4px; }
+  .panel-close:hover { color: var(--text); }
+  .panel-body { padding: 16px 20px; flex: 1; }
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 10px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .info-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+  .info-label { font-size: 12px; color: var(--text2); min-width: 88px; flex-shrink: 0; padding-top: 1px; }
+  .info-val { font-size: 12px; color: var(--text); word-break: break-all; flex: 1; }
+  .live-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: var(--accent); color: #fff; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; text-decoration: none; margin-top: 4px; transition: background 0.15s; }
+  .live-btn:hover { background: var(--accent2); text-decoration: none; color: #fff; }
+  .token-box { font-family: monospace; font-size: 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 10px; color: var(--text2); word-break: break-all; margin-top: 4px; cursor: pointer; transition: border-color 0.12s; }
+  .token-box:hover { border-color: var(--border2); }
+  .notes-box { font-size: 12px; color: var(--text2); background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; line-height: 1.6; white-space: pre-wrap; }
+  .deps-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .panel-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-shrink: 0; }
+  .btn { padding: 8px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); transition: all 0.15s; background: none; color: var(--text2); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+  .btn-danger { color: #e05050; border-color: rgba(220,80,80,0.3); }
+  .btn-danger:hover { background: rgba(220,80,80,0.1); }
+  .modal-overlay { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+  .modal-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { font-size: 15px; font-weight: 500; color: var(--text); }
+  .modal-close { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; }
+  .modal-body { padding: 18px 22px; }
+  .form-row { margin-bottom: 14px; }
+  .form-label { font-size: 11px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-input { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 11px; font-size: 13px; color: var(--text); outline: none; transition: border 0.15s; }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--text3); }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 10px 16px; font-size: 13px; color: var(--text); z-index: 200; opacity: 0; transform: translateY(8px); transition: all 0.2s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .empty { text-align: center; padding: 40px; color: var(--text3); font-size: 14px; }
+  .loading { text-align: center; padding: 60px; color: var(--text3); font-size: 14px; }
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h1>Project Hub</h1>
+      <p>jesse.topcalroofing@gmail.com</p>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-label">Groups</div>
+      <div class="nav-item active" onclick="setFilter('All', this)">
+        <span style="font-size:14px">&#8862;</span> All Projects
+        <span class="nav-count" id="nav-count-all">0</span>
+      </div>
+      <div class="nav-item" onclick="setFilter('TopCal Roofing', this)">
+        <span class="nav-dot" style="background:#1D9E75"></span> TopCal Roofing
+        <span class="nav-count" id="nav-count-topcal">0</span>
+      </div>
+      <div class="nav-item" onclick="setFilter('Side Projects', this)">
+        <span class="nav-dot" style="background:#7F77DD"></span> Side Projects
+        <span class="nav-count" id="nav-count-side">0</span>
+      </div>
+      <div class="nav-item" onclick="setFilter('Political / Community', this)">
+        <span class="nav-dot" style="background:#D85A30"></span> Political / Community
+        <span class="nav-count" id="nav-count-political">0</span>
+      </div>
+      <div class="nav-label" style="margin-top:12px">Status</div>
+      <div class="nav-item" onclick="setStatusFilter('active', this)">
+        <span style="width:7px;height:7px;border-radius:50%;background:#30c090;flex-shrink:0"></span> Active
+      </div>
+      <div class="nav-item" onclick="setStatusFilter('paused', this)">
+        <span style="width:7px;height:7px;border-radius:50%;background:#d4a040;flex-shrink:0"></span> Paused
+      </div>
+      <div class="nav-item" onclick="setStatusFilter('archived', this)">
+        <span style="width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0"></span> Archived
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <button class="btn-add" onclick="openAddModal()">+ Add Project</button>
+      <button class="theme-toggle" id="deploy-btn" onclick="triggerDeploy()" style="color:var(--accent)">
+        <span id="deploy-label">▶ Deploy</span>
+      </button>
+      <button class="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-label">Light mode</span>
+        <div class="toggle-track" id="toggle-track"><div class="toggle-thumb"></div></div>
+      </button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <h2 id="view-title">All Projects</h2>
+      <div class="search-wrap">
+        <span class="search-icon">&#8981;</span>
+        <input type="text" id="search" placeholder="Search projects..." oninput="renderContent()" />
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="grid-btn" onclick="setView('grid')">Grid</button>
+        <button class="view-btn" id="list-btn" onclick="setView('list')">List</button>
+      </div>
+    </div>
+    <div class="content" id="content"><div class="loading">Loading projects...</div></div>
+  </div>
+</div>
+
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-header" id="panel-header"></div>
+  <div class="panel-body" id="panel-body"></div>
+  <div class="panel-footer" id="panel-footer"></div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">Add Project</span>
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API="https://project-hub-api.jesse-topcalroofing.workers.dev";
+const GC={"TopCal Roofing":"#1D9E75","Side Projects":"#7F77DD","Political / Community":"#D85A30"};
+const HT={"Cloudflare Pages":"cf","Cloudflare":"cf","Cloudflare (static)":"cf","Vercel":"vercel","Netlify":"netlify","Local":"local","Google Forms":"gdocs","Google Sheets":"gdocs"};
+let projects=[],activeFilter="All",activeStatus=null,view="grid",selectedId=null,editingId=null,collapsed={};
+
+function toggleTheme(){
+  const h=document.documentElement,dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  document.getElementById('theme-label').textContent=dark?'Dark mode':'Light mode';
+  document.getElementById('toggle-track').classList.toggle('on',!dark);
+  localStorage.setItem('theme',dark?'light':'dark');
+}
+function initTheme(){
+  const s=localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',s);
+  document.getElementById('theme-label').textContent=s==='light'?'Dark mode':'Light mode';
+  document.getElementById('toggle-track').classList.toggle('on',s==='light');
+}
+
+async function load(){
+  try{const r=await fetch(API+"/projects");projects=await r.json();updateCounts();renderContent();}
+  catch(e){document.getElementById('content').innerHTML='<div class="empty">Could not connect to API.</div>';}
+}
+function updateCounts(){
+  document.getElementById('nav-count-all').textContent=projects.length;
+  document.getElementById('nav-count-topcal').textContent=projects.filter(p=>p.group_name==='TopCal Roofing').length;
+  document.getElementById('nav-count-side').textContent=projects.filter(p=>p.group_name==='Side Projects').length;
+  document.getElementById('nav-count-political').textContent=projects.filter(p=>p.group_name==='Political / Community').length;
+}
+function getFiltered(){
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  return projects.filter(p=>{
+    const mg=activeFilter==='All'||p.group_name===activeFilter;
+    const ms=!activeStatus||p.status===activeStatus;
+    const mq=!q||p.name.toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q)||(p.host||'').toLowerCase().includes(q);
+    return mg&&ms&&mq;
+  });
+}
+function setFilter(f,el){activeFilter=f;activeStatus=null;document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');document.getElementById('view-title').textContent=f==='All'?'All Projects':f;renderContent();}
+function setStatusFilter(s,el){activeFilter='All';activeStatus=s;document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');document.getElementById('view-title').textContent=s.charAt(0).toUpperCase()+s.slice(1)+' Projects';renderContent();}
+function setView(v){view=v;document.getElementById('grid-btn').classList.toggle('active',v==='grid');document.getElementById('list-btn').classList.toggle('active',v==='list');renderContent();}
+
+function renderContent(){
+  const filtered=getFiltered(),el=document.getElementById('content');
+  if(!filtered.length){el.innerHTML='<div class="empty">No projects found.</div>';el.className='content';return;}
+  const byGroup={};filtered.forEach(p=>{if(!byGroup[p.group_name])byGroup[p.group_name]=[];byGroup[p.group_name].push(p);});
+  const showGroups=activeFilter==='All'&&!activeStatus;
+  el.className='content'+(view==='list'?' list-view':'');
+  if(showGroups){
+    el.innerHTML=`<div class="stats-row">
+      <div class="stat-card"><div class="stat-num">${projects.length}</div><div class="stat-label">Total projects</div></div>
+      <div class="stat-card"><div class="stat-num">${projects.filter(p=>p.status==='active').length}</div><div class="stat-label">Active</div></div>
+      <div class="stat-card"><div class="stat-num">${projects.filter(p=>p.status==='paused').length}</div><div class="stat-label">Paused</div></div>
+      <div class="stat-card"><div class="stat-num">${Object.keys(byGroup).length}</div><div class="stat-label">Groups</div></div>
+    </div>${Object.entries(byGroup).map(([g,ps])=>groupHTML(g,ps)).join('')}`;
+  } else {
+    el.innerHTML=`<div class="cards-grid">${filtered.map(p=>cardHTML(p)).join('')}</div>`;
+  }
+}
+function groupHTML(g,ps){
+  const color=GC[g]||'#888',col=collapsed[g];
+  return `<div class="group-section"><div class="group-header" onclick="toggleGroup('${g}')"><span class="group-dot-lg" style="background:${color}"></span><span class="group-title">${g}</span><span class="group-ct">${ps.length}</span><span class="chevron ${col?'up':''}">&#9662;</span></div>${col?'':`<div class="cards-grid">${ps.map(p=>cardHTML(p)).join('')}</div>`}</div>`;
+}
+function cardHTML(p){
+  const ht=HT[p.host]||'',deps=p.deps?p.deps.split(',').map(d=>d.trim()).filter(Boolean):[],short=(p.url||'').replace(/^https?:\/\//,'').replace(/^file:\/\/\//,''),color=GC[p.group_name]||'#888';
+  const liveLink=p.live_url?`<a class="card-live" href="${p.live_url}" target="_blank" onclick="event.stopPropagation()">&#9654; Live</a>`:'';
+  return `<div class="card ${selectedId===p.id?'selected':''}" onclick="openPanel(${p.id})"><div class="card-head"><div class="card-emoji" style="background:${color}20">${p.icon||'[?]'}</div><div style="min-width:0"><div class="card-name">${p.name}</div><div class="card-desc">${p.description||''}</div></div></div><div class="card-tags">${p.host?`<span class="tag ${ht}">${p.host}</span>`:''} ${p.cf_token?'<span class="tag cf">CF token</span>':''} ${p.status&&p.status!=='active'?`<span class="tag ${p.status}-status">${p.status}</span>`:''} ${deps.slice(0,2).map(d=>`<span class="tag">${d}</span>`).join('')}</div><div class="card-url">${short}</div>${liveLink}</div>`;
+}
+function toggleGroup(g){collapsed[g]=!collapsed[g];renderContent();}
+
+function openPanel(id){
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  selectedId=id;renderContent();
+  const color=GC[p.group_name]||'#888',isHttp=(p.url||'').startsWith('http'),deps=p.deps?p.deps.split(',').map(d=>d.trim()).filter(Boolean):[];
+  document.getElementById('panel-header').innerHTML=`<div class="panel-header-icon" style="background:${color}20">${p.icon||'[?]'}</div><div><div class="panel-title">${p.name}</div><div class="panel-subtitle">${p.group_name}</div></div><button class="panel-close" onclick="closePanel()">&#10005;</button>`;
+  document.getElementById('panel-body').innerHTML=`
+    <div class="section"><div class="section-title">Description</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${p.description||'No description.'}</div></div>
+    <div class="section"><div class="section-title">Access</div>
+      <div class="info-row"><span class="info-label">URL</span><span class="info-val">${isHttp?`<a href="${p.url}" target="_blank">${p.url}</a>`:p.url||'&#8212;'}</span></div>
+      ${p.live_url?`<div class="info-row"><span class="info-label">Live Page</span><span class="info-val"><a class="live-btn" href="${p.live_url}" target="_blank">&#9654; Open Live</a></span></div>`:''}
+      <div class="info-row"><span class="info-label">Host</span><span class="info-val">${p.host||'&#8212;'}</span></div>
+      <div class="info-row"><span class="info-label">Status</span><span class="info-val"><span class="tag ${p.status||'active'}-status">${p.status||'active'}</span></span></div>
+    </div>
+    ${p.cf_user||p.cf_token?`<div class="section"><div class="section-title">Cloudflare</div>${p.cf_user?`<div class="info-row"><span class="info-label">Account</span><span class="info-val">${p.cf_user}</span></div>`:''} ${p.cf_token?`<div class="info-row"><span class="info-label">API Token</span><span class="info-val"><div class="token-box" onclick="copyToken('${p.cf_token}')">${p.cf_token.slice(0,16)}... (click to copy)</div></span></div>`:''}</div>`:''}
+    ${deps.length?`<div class="section"><div class="section-title">Dependencies</div><div class="deps-wrap">${deps.map(d=>`<span class="tag">${d}</span>`).join('')}</div></div>`:''}
+    ${p.notes?`<div class="section"><div class="section-title">Resume Notes</div><div class="notes-box">${p.notes}</div></div>`:''}`;
+  document.getElementById('panel-footer').innerHTML=`<button class="btn btn-primary" onclick="openEditModal(${p.id})">Edit</button><button class="btn btn-ghost" onclick="copyUrl(${p.id})">Copy URL</button><button class="btn btn-danger" onclick="deleteProject(${p.id})">Delete</button>`;
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('panel-overlay').classList.add('open');
+}
+function closePanel(){selectedId=null;document.getElementById('panel').classList.remove('open');document.getElementById('panel-overlay').classList.remove('open');renderContent();}
+function copyToken(t){navigator.clipboard.writeText(t);toast('Token copied!');}
+function copyUrl(id){const p=projects.find(x=>x.id===id);if(p){navigator.clipboard.writeText(p.url||'');toast('URL copied!');}}
+
+function formHTML(p){
+  const v=p||{};
+  return `<div class="form-row"><label class="form-label">Project Name *</label><input class="form-input" id="f-name" value="${v.name||''}" placeholder="My Project"/></div>
+    <div class="form-row"><label class="form-label">Description</label><input class="form-input" id="f-desc" value="${v.description||''}" placeholder="What does this do?"/></div>
+    <div class="form-row-2"><div class="form-row" style="margin-bottom:0"><label class="form-label">Group</label><select class="form-input" id="f-group">${['TopCal Roofing','Side Projects','Political / Community'].map(g=>`<option ${v.group_name===g?'selected':''}>${g}</option>`).join('')}</select></div>
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Icon</label><input class="form-input" id="f-icon" value="${v.icon||''}" placeholder="[tag]"/></div></div>
+    <div class="form-row" style="margin-top:14px"><label class="form-label">Project URL</label><input class="form-input" id="f-url" value="${v.url||''}" placeholder="https://..."/></div>
+    <div class="form-row"><label class="form-label">Live Page URL</label><input class="form-input" id="f-live" value="${v.live_url||''}" placeholder="https://myapp.pages.dev"/></div>
+    <div class="form-row-2"><div class="form-row" style="margin-bottom:0"><label class="form-label">Host</label><input class="form-input" id="f-host" value="${v.host||''}" placeholder="Cloudflare Pages"/></div>
+    <div class="form-row" style="margin-bottom:0"><label class="form-label">Status</label><select class="form-input" id="f-status">${['active','paused','archived'].map(s=>`<option ${(v.status||'active')===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+    <div class="form-row" style="margin-top:14px"><label class="form-label">Cloudflare Account</label><input class="form-input" id="f-cfuser" value="${v.cf_user||''}" placeholder="email@example.com"/></div>
+    <div class="form-row"><label class="form-label">Cloudflare API Token</label><input class="form-input" id="f-cftoken" value="${v.cf_token||''}" placeholder="Token..."/></div>
+    <div class="form-row"><label class="form-label">Dependencies</label><input class="form-input" id="f-deps" value="${v.deps||''}" placeholder="React, Vite, Wrangler"/></div>
+    <div class="form-row"><label class="form-label">Resume Notes</label><textarea class="form-input" id="f-notes" rows="3" placeholder="What do I need to know to continue?">${v.notes||''}</textarea></div>`;
+}
+function getFormData(){return{name:document.getElementById('f-name').value.trim(),description:document.getElementById('f-desc').value.trim(),group_name:document.getElementById('f-group').value,icon:document.getElementById('f-icon').value.trim()||'[?]',url:document.getElementById('f-url').value.trim(),live_url:document.getElementById('f-live').value.trim()||null,host:document.getElementById('f-host').value.trim(),status:document.getElementById('f-status').value,cf_user:document.getElementById('f-cfuser').value.trim()||null,cf_token:document.getElementById('f-cftoken').value.trim()||null,deps:document.getElementById('f-deps').value.trim()||null,notes:document.getElementById('f-notes').value.trim()||null};}
+
+function openAddModal(){editingId=null;document.getElementById('modal-title').textContent='Add Project';document.getElementById('modal-body').innerHTML=formHTML(null);document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveProject()">Save Project</button>`;document.getElementById('modal-overlay').classList.add('open');}
+function openEditModal(id){const p=projects.find(x=>x.id===id);if(!p)return;editingId=id;document.getElementById('modal-title').textContent='Edit Project';document.getElementById('modal-body').innerHTML=formHTML(p);document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveProject()">Save Changes</button>`;document.getElementById('modal-overlay').classList.add('open');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+
+async function saveProject(){
+  const data=getFormData();if(!data.name){toast('Name is required');return;}
+  try{
+    if(editingId){const r=await fetch(`${API}/projects/${editingId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const u=await r.json();projects=projects.map(p=>p.id===editingId?{...u,id:editingId}:p);toast('Project updated!');closeModal();openPanel(editingId);}
+    else{const r=await fetch(`${API}/projects`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const c=await r.json();projects.push(c);toast('Project added!');closeModal();}
+    updateCounts();renderContent();
+  }catch(e){toast('Error saving project');}
+}
+async function deleteProject(id){
+  if(!confirm('Delete this project?'))return;
+  try{await fetch(`${API}/projects/${id}`,{method:'DELETE'});projects=projects.filter(p=>p.id!==id);closePanel();updateCounts();renderContent();toast('Project deleted.');}
+  catch(e){toast('Error deleting');}
+}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+async function triggerDeploy(){
+  const btn=document.getElementById('deploy-btn');
+  const lbl=document.getElementById('deploy-label');
+  if(btn.disabled)return;
+  btn.disabled=true;lbl.textContent='Deploying...';
+  try{
+    const r=await fetch(`${API}/deploy`,{method:'POST'});
+    const d=await r.json();
+    toast(d.triggered?'Deploy triggered! Building...':'Error: '+(d.error||'failed'));
+  }catch(e){toast('Deploy request failed');}
+  setTimeout(()=>{btn.disabled=false;lbl.textContent='▶ Deploy';},4000);
+}
+
+initTheme();
+load();
+</script>
+</body>
+</html>
